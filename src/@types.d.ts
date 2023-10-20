@@ -17,16 +17,8 @@ interface BaseEntry {
     site: sites;
     views?: number;
     ids?: string[];
+    requestId?: string;
+    requestUrl?: string;
 }
 
-interface EntryWithRequestId extends BaseEntry {
-    requestId: string;
-    requestUrl?: never;
-}
-
-interface EntryWithRequestUrl extends BaseEntry {
-    requestId?: never;
-    requestUrl: string;
-}
-
-type IEntry = EntryWithRequestId | EntryWithRequestUrl;
+type IEntry = BaseEntry;
