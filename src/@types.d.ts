@@ -13,6 +13,7 @@ export interface embedMedia {
 
 interface BaseEntry {
     _id?: string;
+    type: 'profile' | 'post'
     timestamp?: Date;
     site: sites;
     views?: number;

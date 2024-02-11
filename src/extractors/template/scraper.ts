@@ -1,108 +1,87 @@
-import type {AxiosRequestConfig} from "axios";
+import type { AxiosError, AxiosRequestConfig } from "axios";
 import axios from "axios";
-import {IEntry} from "../../@types";
-import getCorsProxy from "../../utils/getCorsProxy";
+
+import { HttpsProxyAgent } from "hpagent";
+import { IEntry } from "../../@types";
+import { embedFetch, embedFetchError, sites } from "./types";
 
 export class Scraper implements IScraper {
-    settings: {
-        proxyRequests?: boolean
-        corsProxyUrl?: string
-    } = {
-        corsProxyUrl: process.env.proxy_url
-    }
+  settings: {
+    proxyRequests?: boolean;
+    corsProxyUrl?: string;
+  } = {
+    corsProxyUrl: process.env.proxy_url,
+  };
 
-    async rawGet(id: IEntry): Promise<embedFetch | embedFetchError> {
-        return {
-            type: "tiktok",
-            reason: "Not implemented yet"
-        } as embedFetchError
-    }
+  get = this.rawGetPosts.bind(this)
 
-    async error(id: string): Promise<embedFetchError> {
-        return {
-            type: "tiktok",
-            reason: "Not implemented yet"
-        } as embedFetchError
-    }
+  async rawGetPosts(id: IEntry): Promise<embedFetch | embedFetchError> {
+    throw "this should not be called " + id;
+  }
 
-    fetch(config: AxiosRequestConfig) {
-        if (this?.settings?.proxyRequests) {
-            const proxy = getCorsProxy()
-            config.url = proxy + config?.url
-        }
-        return axios(config)
-    }
+  async rawGetProfile(id: IEntry): Promise<(embedFetch | embedFetchError)[]> {
+    throw "this should not be called " + id;
+  }
 
-    cors(link?: string) {
-        if (!link) return link as undefined
-        return `${this.settings.corsProxyUrl}/proxy/${encodeURIComponent(link)}?forcedHeadersProxy=%7B%22Cross-Origin-Resource-Policy%22%3A%22*%22%7D`
+  async error(id: string): Promise<embedFetchError> {
+    return {
+      type: "tiktok",
+      reason: "Not implemented yet",
+    } as embedFetchError;
+  }
+
+  async fetch(config: FetchConfig, index: number = 0): Promise<any> {
+    try {
+      if (this?.settings?.proxyRequests && process.env.proxy_resi_url) {
+        config.httpsAgent = new HttpsProxyAgent({
+          proxy: process.env.proxy_resi_url,
+        });
+      }
+
+      const data = await axios(config);
+
+      const valid = config?.validateData?.(data.data);
+      if (!valid && config?.validateData) throw valid;
+
+      return data;
+    } catch (e) {
+      const error = e as AxiosError;
+      if (index >= Number(process.env.maxAttempts || 0)) {
+        console.error(e);
+        return error;
+      }
+      return this.fetch(config as FetchConfig, index + 1);
     }
+  }
+
+  /**
+   * @deprecated Cors proxy should be handled on a per use case
+   */
+  cors(link?: string | undefined) {
+    if (!link) return link as undefined;
+    return `${this.settings.corsProxyUrl || process.env.proxy_url}/${link}`;
+  }
 }
 
 export interface IScraperSettings {
-    proxyRequests?: boolean;
-    corsProxyUrl?: string;
+  proxyRequests?: boolean;
+  corsProxyUrl?: string;
 }
 
 export interface IScraper {
-    settings: IScraperSettings;
+  type?: sites;
+  settings: IScraperSettings;
 
-    rawGet(id: IEntry): Promise<embedFetch | embedFetchError>;
+  rawGetPosts(id: IEntry): Promise<embedFetch | embedFetchError>;
 
-    error(id: string): Promise<embedFetchError>;
+  get(id: IEntry): Promise<embedFetch | embedFetchError>;
 
-    fetch(config: AxiosRequestConfig): Promise<any>; // you may need to replace 'any' with actual return type
-    cors(link?: string): string | undefined;
+  error(id: string): Promise<embedFetchError>;
+
+  fetch(config: FetchConfig, index?: number): Promise<any>; // you may need to replace 'any' with actual return type
+  cors(link?: string): string | undefined;
 }
 
-export type sites = "twitter" | "tiktok" | "instagram" | "reddit"
-export type medias = 'video' | 'photo' | 'audio' | 'gif'
-
-export interface embedMedia {
-    type: medias;
-    url: string;
-    thumbnail: string | null;
-    duration: number | null;
-    title?: string;
-    height: number;
-    width: number;
-}
-
-export interface embedFetch {
-    type: sites;
-    id: string;
-    incorrectId?: boolean;
-    user: {
-        name: any;
-        displayName: any;
-        region: any;
-        followers: any;
-        friends: any;
-        pictures: {
-            url: any;
-            banner: any | null;
-        };
-    };
-    content: {
-        id: any;
-        text: string | null;
-        media: embedMedia[];
-        embedUrl: string;
-        generatedMedia?: embedMedia[] | null;
-        statistics: {
-            shares: number;
-            comments: number;
-            follows: number;
-            views: number;
-            likes: number;
-        };
-    };
-}
-
-export interface embedFetchError {
-    type: sites;
-    id?: string;
-    reason: string;
-    cause?: string;
-    code?: number;
+interface FetchConfig extends AxiosRequestConfig {
+  validateData?(data: any): string | boolean;
 }

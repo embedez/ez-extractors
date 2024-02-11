@@ -1,19 +1,15 @@
-import {NextURL} from "next/dist/server/web/next-url";
+import { NextURL } from "next/dist/server/web/next-url";
+import { IEntry } from "../../@types";
 
 export class Routing implements IRouting {
-    async id(pathname: string, nextUrl?: NextURL): Promise<{
-        id: string;
-        url?: string;
-    } | null> {
-        return null
-    }
-}
-
-export interface IIdReturn {
-    id: string;
-    url?: string;
+  async id(
+    pathname: string,
+    nextUrl?: NextURL,
+  ): Promise<IEntry | null> {
+    return null;
+  }
 }
 
 export interface IRouting {
-    id: (pathname: string, nextUrl?: NextURL) => Promise<IIdReturn | null>;
+  id: (pathname: string, nextUrl?: NextURL) => Promise<IEntry | null>;
 }
