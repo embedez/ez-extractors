@@ -1,4 +1,4 @@
-export type sites = "twitter" | "tiktok" | "instagram" | "reddit"
+export type sites = "tiktok" | "twitter" | "tiktok" | "instagram" | "reddit"
 export type medias = 'video' | 'photo' | 'audio' | 'gif'
 
 export interface embedMedia {

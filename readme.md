@@ -23,7 +23,7 @@ Before you can run an extractor, ensure you have [Node.js](https://nodejs.org/en
 If you want to run a specific extractor located in the `./src/extractors/` directory, you can use the following command:
 
 `
-npm run dev -- -e={foldername} -id={id need to scrape}
+npm run dev -- -e={foldername} -url={url need to scrape}
 `
 
 

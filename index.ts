@@ -31,16 +31,23 @@ if (!url && !id) {
 
 async function getInputAndPerformAction() {
     const extractorsDir = './src/extractors';
-    const directories = fs.readdirSync(extractorsDir, { withFileTypes: true })
-        .filter(dirent => dirent.isDirectory() && dirent.name !== 'template')
-        .map(dirent => dirent.name);
 
+    console.log(extractorsDir, extractor)
+
+    const routingModulePath = path.join(fs.realpathSync('./'), extractorsDir, extractor, '/routing.ts');
     const scraperModulePath = path.join(fs.realpathSync('./'), extractorsDir, extractor, '/scraper.ts');
 
+    console.log(routingModulePath)
+
+    const RoutingClass = await require(routingModulePath)
     const ScraperClass = await require(scraperModulePath);
 
+    const router = new RoutingClass.default()
     const scraper = new ScraperClass.default();
-    console.log(await scraper.rawGet({ requestId: id?.trim(), requestUrl: url?.trim() } satisfies Partial<IEntry>));
+
+    const entry = await router.id(url)
+    console.log(entry);
+    if (entry) console.log(await scraper.rawGetPosts(entry));
 }
 
 getInputAndPerformAction().catch(console.error);

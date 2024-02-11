@@ -1,5 +1,5 @@
 import {IScraper, Scraper} from "../template/scraper";
-import type {IEntry, sites} from "../../@types";
+import type {IEntry, embedMedia, sites} from "../../@types";
 import { embedFetch, embedFetchError } from "../template/types";
 
 export default class exampleScraper extends Scraper implements IScraper {

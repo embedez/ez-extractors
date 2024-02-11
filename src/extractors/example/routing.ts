@@ -17,7 +17,7 @@ export default class exampleRouting extends Routing {
       if (!found) return null;
   
       return { 
-        site: 'twitter',
+        site: 'tiktok',
         type: "post",
         requestId: found.id 
       } as IEntry
