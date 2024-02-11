@@ -5,13 +5,12 @@ import {IEntry} from "./src/@types";
 const args = process.argv.slice(2);
 
 const extractorArgument = args.find((arg) => arg.startsWith('-e'));
-const idArgument = args.find((arg) => arg.startsWith('-id'));
+const typeArgument = args.find((arg) => arg.startsWith('-type'));
 const urlArgument = args.find((arg) => arg.startsWith('-url'))
 
 const extractor = extractorArgument ? extractorArgument.split('=')[1] : undefined;
-const id = idArgument ? idArgument.split('=')[1] : undefined;
+const type = typeArgument ? typeArgument.split('=')[1] : undefined || 'post';
 const url = urlArgument ? urlArgument.split('=')[1] : undefined;
-
 console.log(args)
 
 if (!extractor) {
@@ -19,12 +18,7 @@ if (!extractor) {
     process.exit(1);
 }
 
-if (!id && !url) {
-    console.error("ID argument must be provided with -id=requestId flag");
-    process.exit(1);
-}
-
-if (!url && !id) {
+if (!url) {
     console.error("ID argument must be provided with -url flag");
     process.exit(1);
 }
@@ -45,9 +39,15 @@ async function getInputAndPerformAction() {
     const router = new RoutingClass.default()
     const scraper = new ScraperClass.default();
 
-    const entry = await router.id(url)
-    console.log(entry);
-    if (entry) console.log(await scraper.rawGetPosts(entry));
+    const entry = await router.id(url) as IEntry | null
+    console.log("Entry", entry);
+    if (entry) {
+        if (entry.type == "post") {
+            console.log(await scraper.rawGetPosts(entry))
+        } else {
+            console.log(await scraper.rawGetProfile(entry))
+        }
+    }
 }
 
-getInputAndPerformAction().catch(console.error);
+getInputAndPerformAction().catch(console.error); 
